@@ -1,0 +1,4 @@
+include *.md
+include *.py
+recursive-include alpha1p *.c *.py *.pyx *.pxd *.np *.csv *.npz
+include LICENSE
