@@ -9,12 +9,16 @@ import numpy as np
 import pandas as pd
 import numba
 import os
+import sys
+import pkg_resources
 from .conversion import interpolation
 names = locals()
 
 __all__ = ['norm', 'denorm', 'norm_trans','norm_01', 'denorm_01',
            'merge_csv', 'segment_csv', 'pos_interp',
            'resample', 'action_correction']
+
+PACKAGE_NAME = 'alpha1p'
 
 def norm(x):
     '''
@@ -99,7 +103,7 @@ def merge_csv(input_dir, output_dir, keep_last_actions=True):
     print ('All actions have been saved in %s/all_actions.csv' %(output_dir))
     return
 
-def segment_csv(csv_path='./Datas/all_actions.csv', csv_folder='./Datas/single_dance_csv/', np_folder='./Datas/single_dance/', keep_last_actions=True):
+def segment_csv(csv_path=None, csv_folder=None, np_folder=None, keep_last_actions=True):
     '''
     功能：将包含53支舞蹈的csv文件分割保存。分别保存为以csv格式保存的舞姿式舞蹈和以npy格式保存的帧式舞蹈。
     输入：
@@ -109,6 +113,16 @@ def segment_csv(csv_path='./Datas/all_actions.csv', csv_folder='./Datas/single_d
     keep_last_actions：是否保留最后4个动作。
     返回：空
     '''
+    if csv_path is None:
+        relative_path = 'Datas/all_actions.csv'
+        csv_path = pkg_resources.resource_filename(PACKAGE_NAME, relative_path)
+    if csv_folder is None:
+        relative_path = 'Datas/single_dance_csv/'
+        csv_folder = pkg_resources.resource_filename(PACKAGE_NAME, relative_path)
+    if np_folder is None:
+        relative_path = '/Datas/single_dance/'
+        np_folder = pkg_resources.resource_filename(PACKAGE_NAME, relative_path)
+
     if not os.path.exists(csv_folder):
         os.makedirs(csv_folder)
     if not os.path.exists(np_folder):
@@ -330,7 +344,7 @@ def kaiser_resample(x, sample_ratio, axis=-1, filter_name='kaiser_best'):
     y = np.zeros(shape, dtype=x.dtype, order=order)
     
     fname = os.path.join('Datas/resample_filter', os.path.extsep.join([filter_name, 'npz']))
-    data = np.load(fname)
+    file_path = pkg_resources.resource_filename(PACKAGE_NAME, fname)
     interp_win = data['half_window']
     precision = data['precision']
 
