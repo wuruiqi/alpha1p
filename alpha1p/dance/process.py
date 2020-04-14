@@ -345,6 +345,7 @@ def kaiser_resample(x, sample_ratio, axis=-1, filter_name='kaiser_best'):
     
     fname = os.path.join('Datas/resample_filter', os.path.extsep.join([filter_name, 'npz']))
     file_path = pkg_resources.resource_filename(PACKAGE_NAME, fname)
+    data = np.load(file_path)
     interp_win = data['half_window']
     precision = data['precision']
 
