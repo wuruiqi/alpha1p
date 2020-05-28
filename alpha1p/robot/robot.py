@@ -8,7 +8,7 @@ import serial.tools.list_ports
 import threading
 import sys
 
-__all__ = ['Alpha1S']
+__all__ = ['Alpha1P']
 
 INIT_STAND = {
     'runTime': 1200,
@@ -142,9 +142,9 @@ class DaemonThread(threading.Thread):
             self.reconnect_robot_automatic()
         return
 
-class Alpha1S:
+class Alpha1P:
 
-    def __init__(self, con_type, vendor=0x0483, product=0x5750, port = "/dev/cu.Alpha1_E983-SerialPort", baud_rate=9600, timeout=0.5):
+    def __init__(self, con_type, vendor=0x0483, product=0x5750, port = "/dev/cu.Alpha1_E983-SerialPort", baud_rate=9600, timeout=0.5, heart_time=30):
         self.con_type = con_type
         self.vendor = vendor
         self.product = product
@@ -169,7 +169,8 @@ class Alpha1S:
         self.version = 'Soft Version:{}    Hard Version:{}'.format(self.__soft_version(), self.__hard_version())
         self.get_udid(tips=False)
         self.get_sn(tips=False)
-        self.open_daemon_thread(20)
+        self.heart_time = heart_time
+        self.open_daemon_thread(heart_time)
         
     def connect_to_PC(self, tips=True):
         if self.con_type == 'usb':
@@ -312,7 +313,7 @@ class Alpha1S:
             self.write(cmd)
         return
         
-    def open_daemon_thread(self, heart_time=20):
+    def open_daemon_thread(self, heart_time=30):
         '''
         功能：开启守护线程，防止机器人断线
         输入：
@@ -812,7 +813,8 @@ class Alpha1S:
         输入：
         cmd：单个舵机运动的命令参数，包括：舵机ID，舵机角度，运行时间，和允许下帧数据时间。
         注意：舵机ID从1开始计算
-        返回：空
+        返回：
+        flag：命令是否执行成功的标志，数据类型为bool。
         '''
         response = b''
         cmd = get_single_control_cmd(cmd)
@@ -823,8 +825,7 @@ class Alpha1S:
         flag = parsing_single_control(response)
         if flag is False:
             print('命令执行失败，请重试！')
-            return 0
-        return
+        return flag
     
     @lock    
     def multi_control(self, cmd):
@@ -833,7 +834,8 @@ class Alpha1S:
         输入：
         cmd：多舵机运动的命令参数，包括：所有舵机的角度值，运行时间，和允许下帧数据时间。
         注意：舵机ID从1开始计算
-        返回：空
+        返回：
+        flag：命令是否执行成功的标志，数据类型为bool。
         '''
         response = b''
         cmd = get_multi_control_cmd(cmd)
@@ -844,7 +846,6 @@ class Alpha1S:
         flag = parsing_multi_control(response)
         if flag is False:
             print('命令执行失败，请重试！')
-            return 0
         return flag
     
     @lock
