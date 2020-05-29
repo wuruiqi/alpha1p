@@ -166,6 +166,7 @@ class Alpha1P:
             sys.exit(0)
         self.handshake()
         self.get_robot_status()
+        self.power_info()
         self.version = 'Soft Version:{}    Hard Version:{}'.format(self.__soft_version(), self.__hard_version())
         self.get_udid(tips=False)
         self.get_sn(tips=False)
