@@ -569,7 +569,7 @@ class Alpha1P:
             self.write(cmd)
         except OSError:
             return False
-        response = self.get_response()
+        response = self.get_response(timeout=3000)
         flag = parsing_heart_beat(response)
         return flag
     
