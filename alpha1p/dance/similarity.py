@@ -51,6 +51,7 @@ def handmade(contrast_pose, stand_pose):
         similarity = ((similarity - noise_mean)/(2*(1 - noise_mean)) + 0.5)
     else:
         similarity = similarity/(2*noise_mean)
+    similarity.clip(0, 1)
     return similarity
 
 def mean(contrast_pose, stand_pose):
@@ -70,6 +71,7 @@ def mean(contrast_pose, stand_pose):
         similarity = ((similarity - noise_mean)/(2*(1 - noise_mean)) + 0.5)
     else:
         similarity = similarity/(2*noise_mean)
+    similarity.clip(0, 1)
     return similarity
 
 def cos_dis(contrast_pose, stand_pose):
@@ -96,6 +98,7 @@ def cos_dis(contrast_pose, stand_pose):
         similarity = ((similarity - noise_mean)/(2*(1 - noise_mean)) + 0.5)
     else:
         similarity = similarity/(2*noise_mean)
+    similarity.clip(0, 1)
     return similarity
 
 def cheb_dis(contrast_pose, stand_pose):
@@ -134,6 +137,7 @@ def wenyao(contrast_pose, stand_pose):
         similarity = ((similarity - noise_mean)/(2*(1 - noise_mean)) + 0.5)
     else:
         similarity = similarity/(2*noise_mean)
+    similarity.clip(0, 1)
     return  similarity
 
 def batch_compare(batch_data, datasets, method=None):
