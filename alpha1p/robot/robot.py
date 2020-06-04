@@ -47,14 +47,15 @@ class DaemonThread(threading.Thread):
     def __init__(self, robot, time):
         threading.Thread.__init__(self)
         self.robot = robot
-        self.heat_time = time
+        self.heart_time = time
+        self.flag=True
 
     # 使用守护线程保证机器人在线
     def run(self):
         print('守护线程已经启动！')
         
         while self.robot.is_alive:
-            time.sleep(self.heat_time)
+            time.sleep(self.heart_time)
             response = self.robot.get_response()
             if response!=b'':
                 single_type =[1, 3, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 24, 25, 32, 34,
@@ -100,8 +101,8 @@ class DaemonThread(threading.Thread):
                         end = len(response)
                         response = response[end+1:]
             else:
-                flag = self.robot.heart_beat()
-                if not flag:
+                self.flag = self.robot.heart_beat()
+                if not self.flag:
                     self.robot.lock.acquire()
                     self.robot.is_alive = False
                     print('机器人连接已断开，正在尝试重新连接。。。')                
@@ -174,6 +175,10 @@ class Alpha1P:
         self.open_daemon_thread(heart_time)
         
     def connect_to_PC(self, tips=True):
+        '''
+        功能；重新初始化机器人参数。
+        注意：此函数除了类第一次实例化，其他时间不能在类内部直接调用，否则无法连接机器人！！！
+        '''
         if self.con_type == 'usb':
 
             try:
@@ -192,6 +197,10 @@ class Alpha1P:
         return 
     
     def reset(self):
+        '''
+        功能；重新初始化机器人参数。
+        注意：此函数不能不能在类内部直接调用，否则无法连接机器人！！！
+        '''
 
         self.__init__(self.con_type)
         if self.dev!=0:
@@ -216,13 +225,19 @@ class Alpha1P:
         response = self.dev.read_all()
         return response
    
-    def write(self, cmd):
+    def write(self, cmd, tips=False):
         '''
         功能：以Bluetooth形式执行单个命令。
         输入：单个执行命令。
         '''
-        self.dev.write(cmd)
-        return
+        try:
+            self.dev.write(cmd)
+        except Exception as e:
+            if tips:
+                print(e)
+                print('机器人通讯失败，请确保机器人已连接！')
+            return False
+        return True
 
     def __usb_write(self, cmd):
         '''
@@ -453,7 +468,9 @@ class Alpha1P:
         '''
         cmd = packageCommand([0], 'get_action_list')
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         response =b''
         while True:
             response += self.get_response()
@@ -567,7 +584,8 @@ class Alpha1P:
         cmd = packageCommand([0], 'heart_beat')
         self.clear_output()
         try:
-            self.write(cmd)
+            self.dev.write(cmd)
+#             self.write(cmd)
         except OSError:
             return False
         response = self.get_response(timeout=3000)
@@ -585,7 +603,9 @@ class Alpha1P:
         i = 0
         cmd = packageCommand([0], 'robot_status')
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         response = self.get_response()
         self.is_mute, self.play_status, self.sound_size, self.light_status, self.tf_card = parsing_get_robot_status(response)
         if tips:
@@ -820,7 +840,9 @@ class Alpha1P:
         response = b''
         cmd = get_single_control_cmd(cmd)
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         while response==b'':
             response = self.get_response()
         flag = parsing_single_control(response)
@@ -841,7 +863,9 @@ class Alpha1P:
         response = b''
         cmd = get_multi_control_cmd(cmd)
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         while response==b'':
             response = self.get_response()
         flag = parsing_multi_control(response)
@@ -895,7 +919,9 @@ class Alpha1P:
         response = b''
         cmd = get_set_single_offset_cmd(geer_id, value)
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         while response==b'':
             response = self.get_response()
         flag = parsing_set_single_offsset(response)
@@ -915,7 +941,9 @@ class Alpha1P:
         response = b''
         cmd = get_set_all_offset_cmd(offset_values)
         self.clear_output()
-        self.write(cmd)
+        flag = self.write(cmd)
+        if not flag:
+            return None
         while response==b'':
             response = self.get_response()
         flag = parsing_set_all_offsset(response)
